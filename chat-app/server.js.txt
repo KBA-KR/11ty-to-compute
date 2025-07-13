@@ -1,0 +1,29 @@
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+
+// public 폴더 안의 파일들을 클라이언트에 제공
+app.use(express.static('public'));
+
+// 클라이언트가 Socket.IO로 접속하면
+io.on('connection', socket => {
+    console.log('✅ 사용자 연결됨');
+
+    // 클라이언트가 보낸 메시지 처리
+    socket.on('chat message', data => {
+        console.log(`[${data.teamName}] ${data.userName}: ${data.message}`);
+        io.emit('chat message', data); // 모든 클라이언트에 메시지 전송
+    });
+
+    // 클라이언트 연결 해제 시
+    socket.on('disconnect', () => {
+        console.log('⭕ 사용자 연결 해제됨');
+    });
+});
+
+// 서버 실행
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`🟢 서버 실행 중: http://localhost:${PORT}`);
+});
